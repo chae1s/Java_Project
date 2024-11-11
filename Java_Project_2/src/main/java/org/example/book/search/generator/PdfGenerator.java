@@ -1,4 +1,4 @@
-package org.example.book.search.controller;
+package org.example.book.search.generator;
 
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.image.ImageData;
@@ -17,16 +17,15 @@ import com.itextpdf.layout.properties.UnitValue;
 import org.example.book.search.api.KakaoBookAPI;
 import org.example.book.search.model.Book;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
-public class BookController {
+public class PdfGenerator {
 
     private KakaoBookAPI kakaoBookAPI;
 
-    public BookController(KakaoBookAPI kakaoBookAPI) {
+    public PdfGenerator(KakaoBookAPI kakaoBookAPI) {
         this.kakaoBookAPI = kakaoBookAPI;
     }
 
