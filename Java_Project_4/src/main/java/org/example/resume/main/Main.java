@@ -1,6 +1,7 @@
 package org.example.resume.main;
 
 
+import org.example.resume.excel.ExcelWriter;
 import org.example.resume.model.Career;
 import org.example.resume.model.Education;
 import org.example.resume.model.PersonalInfo;
@@ -12,18 +13,14 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-        ConsoleView view = new ConsoleView();
+        ExcelWriter writer = new ExcelWriter();
 
         try {
-            PersonalInfo personalInfo = view.getPersonalInfo();
 
-            List<Career> careers = view.getCareer();
+            writer.createResumeSheet();
 
-            List<Education> educations = view.getEducation();
 
-            String introduction = view.getSelfIntroduction();
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
