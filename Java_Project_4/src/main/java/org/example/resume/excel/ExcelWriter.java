@@ -8,7 +8,11 @@ import org.example.resume.model.Education;
 import org.example.resume.model.PersonalInfo;
 import org.example.resume.view.ConsoleView;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class ExcelWriter {
@@ -36,12 +40,23 @@ public class ExcelWriter {
         // 이미지 불러오기
         InputStream inputStream = new FileInputStream(personalInfo.getFileName());
 
+        int newWidth = 96;
+        int newHeight = 124;
 
-        byte[] imageBytes = IOUtils.toByteArray(inputStream);
+        BufferedImage originalImage = ImageIO.read(inputStream);
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+
+        Graphics2D graphics2D = resizedImage.createGraphics();
+        graphics2D.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        graphics2D.dispose();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(resizedImage, "png", baos);
+
+
+        byte[] imageBytes = baos.toByteArray();
         int pictureIndex = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG);
 
-        int newWidth = (int) (35 * 2.83465);
-        int newHeight = (int) (45 * 2.83465);
 
         XSSFCreationHelper helper = workbook.getCreationHelper();
         XSSFDrawing drawing = (XSSFDrawing) resumeSheet.createDrawingPatriarch();
@@ -50,7 +65,7 @@ public class ExcelWriter {
         anchor.setRow1(1);
 
         personalBody.setHeightInPoints(newHeight * 72 / 96);
-        int columnWidth = (int) Math.floor(((float) newWidth / (float) 8) * 256);
+        int columnWidth = (int) ((newWidth / 256.0) * 256);
         resumeSheet.setColumnWidth(0, columnWidth);
 
         XSSFPicture picture = drawing.createPicture(anchor, pictureIndex);
@@ -62,14 +77,51 @@ public class ExcelWriter {
         personalBody.createCell(4).setCellValue(personalInfo.getPhone());
         personalBody.createCell(5).setCellValue(personalInfo.getBirth());
 
+        Row educationHeader = resumeSheet.createRow(startRow++);
+        educationHeader.createCell(0).setCellValue("졸업년도");
+        educationHeader.createCell(1).setCellValue("학교명");
+        educationHeader.createCell(2).setCellValue("전공");
+        educationHeader.createCell(3).setCellValue("졸업여부");
 
+        List<Education> educations = consoleView.getEducation();
+        for (Education education : educations) {
+            Row educationBody = resumeSheet.createRow(startRow++);
 
+            educationBody.createCell(0).setCellValue(education.getGraduationYear());
+            educationBody.createCell(1).setCellValue(education.getSchoolName());
+            educationBody.createCell(2).setCellValue(education.getMajor());
+            educationBody.createCell(3).setCellValue(education.getGraduationStatus());
+        }
+
+        Row careerHeader = resumeSheet.createRow(startRow++);
+        careerHeader.createCell(0).setCellValue("근무기간");
+        careerHeader.createCell(1).setCellValue("근무처");
+        careerHeader.createCell(2).setCellValue("담당업무");
+        careerHeader.createCell(3).setCellValue("근속연수");
+
+        List<Career> careers = consoleView.getCareer();
+        for (Career career : careers) {
+            Row careerBody = resumeSheet.createRow(startRow++);
+
+            careerBody.createCell(0).setCellValue(career.getPeriod());
+            careerBody.createCell(1).setCellValue(career.getCompanyName());
+            careerBody.createCell(2).setCellValue(career.getJobDuties());
+            careerBody.createCell(3).setCellValue(career.getJobTenure());
+        }
+
+        resizedColumn(resumeSheet, 5);
 
         FileOutputStream outputStream = new FileOutputStream(new File("resume.xlsx"));
 
         workbook.write(outputStream);
 
         workbook.close();
+    }
+
+    public void resizedColumn(Sheet sheet, int column) {
+        for (int i = 0; i < column; i++) {
+            sheet.autoSizeColumn(i);
+        }
     }
 
 }
