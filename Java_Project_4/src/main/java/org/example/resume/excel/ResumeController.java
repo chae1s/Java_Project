@@ -1,7 +1,6 @@
 package org.example.resume.excel;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.*;
 import org.example.resume.model.Career;
 import org.example.resume.model.Education;
@@ -12,13 +11,12 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.List;
 
-public class ExcelWriter {
+public class ResumeController {
     private ConsoleView consoleView;
 
-    public ExcelWriter(ConsoleView consoleView) {
+    public ResumeController(ConsoleView consoleView) {
         this.consoleView = consoleView;
     }
 
@@ -56,36 +54,35 @@ public class ExcelWriter {
         // 이미지 불러오기
         InputStream inputStream = new FileInputStream(personalInfo.getFileName());
 
-        int newWidth = 96;
-        int newHeight = 124;
+        // 이미지 크기 조절
+        int newWidth = (int) (35 * 2.83465);
+        int newHeight = (int) (45 * 2.83465);
 
         BufferedImage originalImage = ImageIO.read(inputStream);
-        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+
+        Image image = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_4BYTE_ABGR);
 
         Graphics2D graphics2D = resizedImage.createGraphics();
-        graphics2D.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        graphics2D.drawImage(image, 0, 0, null);
         graphics2D.dispose();
 
+        // 이미지를 바이트 배열로 변환
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(resizedImage, "png", baos);
-
 
         byte[] imageBytes = baos.toByteArray();
         int pictureIndex = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG);
 
-
-        XSSFCreationHelper helper = workbook.getCreationHelper();
+        // 이미지 삽입
         XSSFDrawing drawing = (XSSFDrawing) resumeSheet.createDrawingPatriarch();
-        XSSFClientAnchor anchor = helper.createClientAnchor();
-        anchor.setCol1(0);
-        anchor.setRow1(1);
+        XSSFClientAnchor anchor = new XSSFClientAnchor(0, 0, 0, 0, 0, 1, 1, 2);
+        drawing.createPicture(anchor, pictureIndex);
 
         personalBody.setHeightInPoints(newHeight * 72 / 96);
-        int columnWidth = (int) ((newWidth / 256.0) * 256);
+        int columnWidth = (int) Math.floor(((float) newWidth / (float) 8) * 256);
         resumeSheet.setColumnWidth(0, columnWidth);
-
-        XSSFPicture picture = drawing.createPicture(anchor, pictureIndex);
-        picture.resize();
 
         personalBody.createCell(1).setCellValue(personalInfo.getName());
         personalBody.createCell(2).setCellValue(personalInfo.getEmail());
@@ -124,9 +121,6 @@ public class ExcelWriter {
             careerBody.createCell(2).setCellValue(career.getJobDuties());
             careerBody.createCell(3).setCellValue(career.getJobTenure());
         }
-
-        resizedColumn(resumeSheet, 5);
-
 
     }
 
