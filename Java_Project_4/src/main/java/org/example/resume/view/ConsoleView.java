@@ -83,7 +83,7 @@ public class ConsoleView {
         StringBuffer buffer = new StringBuffer();
         String line;
         while (!(line = reader.readLine()).isEmpty()) {
-            buffer.append(line);
+            buffer.append(line).append(System.lineSeparator());
         }
 
         return buffer.toString();

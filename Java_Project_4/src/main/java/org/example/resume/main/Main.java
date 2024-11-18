@@ -12,12 +12,12 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+        ConsoleView consoleView = new ConsoleView();
 
-        ExcelWriter writer = new ExcelWriter();
+        ExcelWriter writer = new ExcelWriter(consoleView);
 
         try {
-
-            writer.createResumeSheet();
+            writer.createExcel();
 
 
         } catch (Exception e) {

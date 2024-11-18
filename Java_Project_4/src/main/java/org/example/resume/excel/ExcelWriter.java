@@ -16,10 +16,26 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 public class ExcelWriter {
+    private ConsoleView consoleView;
 
-    public void createResumeSheet() throws Exception {
+    public ExcelWriter(ConsoleView consoleView) {
+        this.consoleView = consoleView;
+    }
+
+    public void createExcel() throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
-        ConsoleView consoleView = new ConsoleView();
+        createResumeSheet(workbook);
+        createIntroduceSheet(workbook);
+
+        FileOutputStream outputStream = new FileOutputStream(new File("이력서.xlsx"));
+
+        workbook.write(outputStream);
+
+        workbook.close();
+
+    }
+
+    public void createResumeSheet(XSSFWorkbook workbook) throws Exception {
         PersonalInfo personalInfo = consoleView.getPersonalInfo();
 
         // 첫번째 이력서 시트 생성
@@ -111,17 +127,28 @@ public class ExcelWriter {
 
         resizedColumn(resumeSheet, 5);
 
-        FileOutputStream outputStream = new FileOutputStream(new File("resume.xlsx"));
 
-        workbook.write(outputStream);
-
-        workbook.close();
     }
 
     public void resizedColumn(Sheet sheet, int column) {
         for (int i = 0; i < column; i++) {
             sheet.autoSizeColumn(i);
         }
+    }
+
+    public void createIntroduceSheet(XSSFWorkbook workbook) throws IOException {
+        Sheet introduceSheet = workbook.createSheet("자기소개서");
+
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setWrapText(true);
+
+
+        Row body = introduceSheet.createRow(0);
+        Cell cell = body.createCell(0);
+        cell.setCellValue(consoleView.getSelfIntroduction());
+        cell.setCellStyle(cellStyle);
+
+        introduceSheet.autoSizeColumn(0);
     }
 
 }
